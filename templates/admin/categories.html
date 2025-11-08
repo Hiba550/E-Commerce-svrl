@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Categories - Admin{% endblock %}
+
+{% block content %}
+<div class="container admin-section">
+    <div class="section-heading">
+        <div>
+            <h1>Collections & Navigation</h1>
+            <p>Craft meaningful product groupings that feel curated and intentional.</p>
+        </div>
+        <a href="{{ url_for('admin.add_category') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Category
+        </a>
+    </div>
+
+    {% if categories %}
+    <div class="category-admin-grid">
+        {% for category in categories %}
+        <article class="category-card">
+            <div class="category-card-header">
+                <div>
+                    <h2>{{ category.name }}</h2>
+                    <p>{{ category.description or 'No description provided yet.' }}</p>
+                </div>
+                <span class="pill-badge pill-{{ 'active' if category.is_active else 'inactive' }}">{{ 'Active' if category.is_active else 'Inactive' }}</span>
+            </div>
+            <div class="category-card-body">
+                <div>
+                    <span class="meta-label">Slug</span>
+                    <span class="meta-value">{{ category.slug }}</span>
+                </div>
+                <div>
+                    <span class="meta-label">Display order</span>
+                    <span class="meta-value">{{ category.display_order or '—' }}</span>
+                </div>
+                <div>
+                    <span class="meta-label">Products</span>
+                    <span class="meta-value">{{ category.products.count() }}</span>
+                </div>
+            </div>
+            <div class="category-card-actions">
+                <a href="{{ url_for('products.list_products', category=category.slug) }}" class="pill-link" target="_blank">Preview</a>
+                <a href="{{ url_for('admin.products', category=category.id) }}" class="pill-link">Manage products</a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-canvas">
+        <div class="empty-icon"><i class="fas fa-tags"></i></div>
+        <h2>No categories yet</h2>
+        <p>Create a category to start grouping products with intent.</p>
+        <a href="{{ url_for('admin.add_category') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add category</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

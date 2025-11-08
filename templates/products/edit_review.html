@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Review - {{ product.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.review-form-container {
+    max-width: 800px;
+    margin: 3rem auto;
+    padding: 0 1.5rem;
+}
+
+.rating-input {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 2rem;
+    margin: 1rem 0;
+}
+
+.rating-input input {
+    display: none;
+}
+
+.rating-input label {
+    cursor: pointer;
+    color: #e0e0e0;
+    transition: color 0.2s;
+}
+
+.rating-input input:checked ~ label {
+    color: #ffa500;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-form-container">
+    <a href="{{ url_for('products.product_detail', slug=product.slug) }}" class="btn btn-outline" style="margin-bottom: 1rem;">
+        <i class="fas fa-arrow-left"></i> Back to Product
+    </a>
+    
+    <div class="card" style="padding: 2rem;">
+        <h1>Edit Your Review</h1>
+        <p style="color: #6c757d; margin-bottom: 2rem;">Update your review for {{ product.name }}</p>
+        
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label class="form-label">Your Rating *</label>
+                <div class="rating-input">
+                    <input type="radio" name="rating" value="1" id="star1" required {% if review.rating == 1 %}checked{% endif %}>
+                    <label for="star1"><i class="fas fa-star"></i></label>
+                    
+                    <input type="radio" name="rating" value="2" id="star2" {% if review.rating == 2 %}checked{% endif %}>
+                    <label for="star2"><i class="fas fa-star"></i></label>
+                    
+                    <input type="radio" name="rating" value="3" id="star3" {% if review.rating == 3 %}checked{% endif %}>
+                    <label for="star3"><i class="fas fa-star"></i></label>
+                    
+                    <input type="radio" name="rating" value="4" id="star4" {% if review.rating == 4 %}checked{% endif %}>
+                    <label for="star4"><i class="fas fa-star"></i></label>
+                    
+                    <input type="radio" name="rating" value="5" id="star5" {% if review.rating == 5 %}checked{% endif %}>
+                    <label for="star5"><i class="fas fa-star"></i></label>
+                </div>
+                <small style="color: #6c757d;">Click the stars to rate (5 stars = excellent)</small>
+            </div>
+            
+            <!-- Title -->
+            <div class="form-group">
+                <label for="title" class="form-label">Review Title (Optional)</label>
+                <input type="text" id="title" name="title" class="form-control" 
+                       value="{{ review.title or '' }}"
+                       placeholder="e.g., Great quality oil!" maxlength="100">
+            </div>
+            
+            <!-- Comment -->
+            <div class="form-group">
+                <label for="comment" class="form-label">Your Review *</label>
+                <textarea id="comment" name="comment" class="form-control" rows="6" 
+                          placeholder="Tell us what you think about this product..." required>{{ review.comment }}</textarea>
+                <small style="color: #6c757d;">Minimum 10 characters</small>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Review
+                </button>
+                <a href="{{ url_for('products.product_detail', slug=product.slug) }}" class="btn btn-outline">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.rating-input label').forEach(label => {
+    label.addEventListener('mouseover', function() {
+        const input = document.getElementById(this.htmlFor);
+        const value = parseInt(input.value);
+        
+        document.querySelectorAll('.rating-input input').forEach(inp => {
+            const lbl = document.querySelector(`label[for="${inp.id}"]`);
+            if (parseInt(inp.value) <= value) {
+                lbl.style.color = '#ffa500';
+            } else {
+                lbl.style.color = '#e0e0e0';
+            }
+        });
+    });
+});
+
+document.querySelector('.rating-input').addEventListener('mouseleave', function() {
+    const checked = document.querySelector('.rating-input input:checked');
+    document.querySelectorAll('.rating-input label').forEach(label => {
+        label.style.color = '#e0e0e0';
+    });
+    
+    if (checked) {
+        const value = parseInt(checked.value);
+        document.querySelectorAll('.rating-input input').forEach(inp => {
+            const lbl = document.querySelector(`label[for="${inp.id}"]`);
+            if (parseInt(inp.value) <= value) {
+                lbl.style.color = '#ffa500';
+            }
+        });
+    }
+});
+
+document.querySelectorAll('.rating-input input').forEach(input => {
+    input.addEventListener('change', function() {
+        const value = parseInt(this.value);
+        document.querySelectorAll('.rating-input input').forEach(inp => {
+            const lbl = document.querySelector(`label[for="${inp.id}"]`);
+            if (parseInt(inp.value) <= value) {
+                lbl.style.color = '#ffa500';
+            } else {
+                lbl.style.color = '#e0e0e0';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

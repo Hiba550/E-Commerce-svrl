@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Orders - Admin{% endblock %}
+
+{% block content %}
+<div class="container admin-section">
+    <div class="section-heading">
+        <div>
+            <h1>Order Command</h1>
+            <p>Track fulfillment flow with clarity worthy of a flagship store.</p>
+        </div>
+    </div>
+
+    <div class="status-chip-row">
+        {% set statuses = ['pending','confirmed','processing','shipped','delivered','cancelled'] %}
+        <a href="{{ url_for('admin.orders') }}" class="status-chip {% if not status_filter %}active{% endif %}">
+            All <span>{{ status_total }}</span>
+        </a>
+        {% for status in statuses %}
+            <a href="{{ url_for('admin.orders', status=status, q=search_query, date_from=date_from, date_to=date_to) }}" class="status-chip status-{{ status }} {% if status_filter == status %}active{% endif %}">
+                {{ status|capitalize }}
+                <span>{{ status_counts.get(status, 0) }}</span>
+            </a>
+        {% endfor %}
+    </div>
+
+    <form method="GET" class="filter-bar">
+        <input type="hidden" name="status" value="{{ status_filter or '' }}">
+        <div class="filter-field">
+            <label>Search</label>
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Order #, customer, or email" class="form-control">
+        </div>
+        <div class="filter-field">
+            <label>From</label>
+            <input type="date" name="date_from" value="{{ date_from or '' }}" class="form-control">
+        </div>
+        <div class="filter-field">
+            <label>To</label>
+            <input type="date" name="date_to" value="{{ date_to or '' }}" class="form-control">
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filter</button>
+            <a href="{{ url_for('admin.orders') }}" class="btn btn-outline">Reset</a>
+        </div>
+    </form>
+
+    {% if orders %}
+    <div class="order-admin-grid">
+        {% for order in orders %}
+        <article class="order-admin-card">
+            <div class="order-card-header">
+                <div>
+                    <h2>#{{ order.order_number }}</h2>
+                    <p>{{ order.created_at.strftime('%b %d, %Y %I:%M %p') }}</p>
+                </div>
+                <span class="status-chip status-{{ order.status }}">{{ order.status|capitalize }}</span>
+            </div>
+            <div class="order-card-body">
+                <div>
+                    <span class="meta-label">Customer</span>
+                    <span class="meta-value">{{ order.customer.full_name or order.customer.username }}</span>
+                    <span class="meta-footnote">{{ order.customer.email }}</span>
+                </div>
+                <div>
+                    <span class="meta-label">Items</span>
+                    <span class="meta-value">{{ order.order_items.count() }}</span>
+                    <span class="meta-footnote">Subtotal ₹{{ order.subtotal }}</span>
+                </div>
+                <div>
+                    <span class="meta-label">Total</span>
+                    <span class="meta-value">₹{{ order.total_amount }}</span>
+                    <span class="meta-footnote">Payment {{ order.payment_status|capitalize }}</span>
+                </div>
+            </div>
+            <div class="order-card-actions">
+                <a href="{{ url_for('admin.order_detail', order_id=order.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-eye"></i> View</a>
+                <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="status" class="form-control form-control-sm">
+                        {% for status in statuses %}
+                            <option value="{{ status }}" {% if order.status == status %}selected{% endif %}>{{ status|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination pagination-centered">
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.orders', page=pagination.prev_num, status=status_filter, q=search_query, date_from=date_from, date_to=date_to) }}">&laquo; Prev</a>
+        {% endif %}
+
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == pagination.page %}
+                    <span class="active">{{ page_num }}</span>
+                {% else %}
+                    <a href="{{ url_for('admin.orders', page=page_num, status=status_filter, q=search_query, date_from=date_from, date_to=date_to) }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span>…</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+            <a href="{{ url_for('admin.orders', page=pagination.next_num, status=status_filter, q=search_query, date_from=date_from, date_to=date_to) }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-canvas">
+        <div class="empty-icon"><i class="fas fa-inbox"></i></div>
+        <h2>No orders match this view</h2>
+        <p>Adjust your filters or check back after the next campaign.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

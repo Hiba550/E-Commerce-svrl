@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - Shree Vinayaga{% endblock %}
+
+{% block content %}
+<div class="container" style="margin: 3rem auto;">
+    <h1>Shopping Cart</h1>
+    
+    {% if cart_items %}
+    <div class="row" style="gap: 2rem; margin-top: 2rem;">
+        <!-- Cart Items -->
+        <div class="col-8">
+            {% for item in cart_items %}
+            <div class="card" style="padding: 1.5rem; margin-bottom: 1rem;">
+                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                    <img src="{{ item.product.image_url or url_for('static', filename='images/product-placeholder.jpg') }}" 
+                         alt="{{ item.product.name }}" 
+                         style="width: 100px; height: 100px; object-fit: cover; border-radius: 0.5rem;">
+                    
+                    <div style="flex: 1;">
+                        <h3><a href="{{ url_for('products.product_detail', slug=item.product.slug) }}">{{ item.product.name }}</a></h3>
+                        <p style="color: #6C757D;">{{ item.product.size }} {{ item.product.unit }}</p>
+                        <p class="price">₹{{ item.product.get_discounted_price() }} each</p>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                        <form method="POST" action="{{ url_for('cart.update_cart_item', item_id=item.id) }}" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <label style="margin: 0;">Qty:</label>
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" 
+                                   class="form-control" style="width: 70px;" onchange="this.form.submit()">
+                        </form>
+                        
+                        <form method="POST" action="{{ url_for('cart.remove_from_cart', item_id=item.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div style="text-align: right; min-width: 100px;">
+                        <p class="price" style="font-size: 1.25rem;">₹{{ item.get_subtotal() }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <form method="POST" action="{{ url_for('cart.clear_cart') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline" onclick="return confirm('Are you sure you want to clear your cart?')">
+                    <i class="fas fa-trash-alt"></i> Clear Cart
+                </button>
+            </form>
+        </div>
+        
+        <!-- Cart Summary -->
+        <div class="col-4">
+            <div class="card" style="padding: 2rem; position: sticky; top: 100px;">
+                <h2>Order Summary</h2>
+                
+                <div style="margin-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #DEE2E6;">
+                        <span>Subtotal ({{ cart_items|length }} items):</span>
+                        <span>₹{{ subtotal }}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #DEE2E6;">
+                        <span>Shipping:</span>
+                        <span>{% if subtotal > 500 %}FREE{% else %}₹50{% endif %}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #DEE2E6;">
+                        <span>Tax (5%):</span>
+                        <span>₹{{ (subtotal * 0.05)|round(2) }}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 1rem 0; font-size: 1.25rem; font-weight: 700;">
+                        <span>Total:</span>
+                        <span class="price">₹{{ (subtotal + (subtotal * 0.05) + (0 if subtotal > 500 else 50))|round(2) }}</span>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('checkout.checkout') }}" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-lock"></i> Proceed to Checkout
+                </a>
+                
+                <a href="{{ url_for('products.list_products') }}" class="btn btn-outline" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-shopping-bag"></i> Continue Shopping
+                </a>
+                
+                {% if subtotal <= 500 %}
+                <p style="text-align: center; margin-top: 1rem; color: #6C757D; font-size: 0.875rem;">
+                    <i class="fas fa-truck"></i> Add ₹{{ (500 - subtotal)|round(2) }} more for FREE shipping
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 4rem; background-color: white; border-radius: 1rem; margin-top: 2rem;">
+        <i class="fas fa-shopping-cart" style="font-size: 5rem; color: #DEE2E6; margin-bottom: 1rem;"></i>
+        <h2>Your Cart is Empty</h2>
+        <p style="color: #6C757D; margin-bottom: 2rem;">Add some products to get started!</p>
+        <a href="{{ url_for('products.list_products') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-shopping-bag"></i> Shop Now
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

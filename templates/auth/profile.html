@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - Shree Vinayaga{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin: 3rem auto;">
+    <h1>My Profile</h1>
+    
+    <div class="card" style="padding: 2rem; margin-top: 2rem;">
+        <h2>Account Information</h2>
+        <div style="margin-top: 1.5rem;">
+            <p><strong>Username:</strong> {{ current_user.username }}</p>
+            <p><strong>Email:</strong> {{ current_user.email }}</p>
+            <p><strong>Full Name:</strong> {{ current_user.full_name }}</p>
+            <p><strong>Phone:</strong> {{ current_user.phone }}</p>
+            <p><strong>Account Type:</strong> <span style="text-transform: capitalize;">{{ current_user.user_type }}</span></p>
+            <p><strong>Member Since:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+        </div>
+    </div>
+    
+    {% if current_user.address_line1 %}
+    <div class="card" style="padding: 2rem; margin-top: 2rem;">
+        <h2>Saved Address</h2>
+        <div style="margin-top: 1.5rem;">
+            <p>{{ current_user.address_line1 }}</p>
+            {% if current_user.address_line2 %}
+                <p>{{ current_user.address_line2 }}</p>
+            {% endif %}
+            <p>{{ current_user.city }}, {{ current_user.state }} - {{ current_user.pincode }}</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <a href="{{ url_for('checkout.my_orders') }}" class="btn btn-primary">
+            <i class="fas fa-box"></i> My Orders
+        </a>
+        <a href="{{ url_for('cart.view_cart') }}" class="btn btn-outline">
+            <i class="fas fa-shopping-cart"></i> View Cart
+        </a>
+    </div>
+</div>
+{% endblock %}

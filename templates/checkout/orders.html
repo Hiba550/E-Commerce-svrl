@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - Shree Vinayaga{% endblock %}
+
+{% block content %}
+<div class="container" style="margin: 3rem auto;">
+    <h1>My Orders</h1>
+    
+    {% if orders %}
+        <div style="margin-top: 2rem;">
+            {% for order in orders %}
+            <div class="card" style="padding: 1.5rem; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h3>Order #{{ order.order_number }}</h3>
+                        <p style="color: #6C757D; margin: 0.5rem 0;">
+                            Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                        </p>
+                        <p style="margin-top: 0.5rem;">
+                            <strong>Status:</strong> 
+                            <span style="padding: 0.25rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; 
+                                         background-color: {% if order.status == 'delivered' %}#d4edda{% elif order.status == 'cancelled' %}#f8d7da{% else %}#d1ecf1{% endif %}; 
+                                         color: {% if order.status == 'delivered' %}#155724{% elif order.status == 'cancelled' %}#721c24{% else %}#0c5460{% endif %};">
+                                {{ order.status|upper }}
+                            </span>
+                        </p>
+                        <p style="margin-top: 0.5rem;">
+                            <strong>Items:</strong> {{ order.order_items.count() }} | 
+                            <strong>Total:</strong> <span class="price">₹{{ order.total_amount }}</span>
+                        </p>
+                    </div>
+                    
+                    <a href="{{ url_for('checkout.order_detail', order_number=order.order_number) }}" class="btn btn-outline">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('checkout.my_orders', page=pagination.prev_num) }}">&laquo; Previous</a>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                        <span class="active">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('checkout.my_orders', page=page_num) }}">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span>...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+                <a href="{{ url_for('checkout.my_orders', page=pagination.next_num) }}">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <div style="text-align: center; padding: 4rem; background-color: white; border-radius: 1rem; margin-top: 2rem;">
+            <i class="fas fa-box-open" style="font-size: 5rem; color: #DEE2E6; margin-bottom: 1rem;"></i>
+            <h2>No Orders Yet</h2>
+            <p style="color: #6C757D; margin-bottom: 2rem;">Start shopping to see your orders here!</p>
+            <a href="{{ url_for('products.list_products') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-bag"></i> Shop Now
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

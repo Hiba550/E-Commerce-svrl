@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Shree Vinayaga{% endblock %}
+
+{% block content %}
+<div class="container admin-dashboard">
+    <div class="dashboard-header">
+        <div>
+            <h1 class="dashboard-title">Command Center</h1>
+            <p class="dashboard-subtitle">A pulse on your store in one beautifully crafted view.</p>
+        </div>
+        <div class="dashboard-actions">
+            <a href="{{ url_for('admin.add_product') }}" class="action-chip">
+                <i class="fas fa-plus"></i> New Product
+            </a>
+            <a href="{{ url_for('admin.orders') }}" class="action-chip">
+                <i class="fas fa-receipt"></i> Orders
+            </a>
+            <a href="{{ url_for('admin.users') }}" class="action-chip">
+                <i class="fas fa-users"></i> Customers
+            </a>
+        </div>
+    </div>
+
+    <section class="metric-grid">
+        <article class="metric-card metric-gradient">
+            <div class="metric-label">Total Revenue</div>
+            <div class="metric-value">₹{{ total_revenue|round(2) }}</div>
+            <div class="metric-footnote">Avg. order value ₹{{ dashboard_meta.avg_order_value }}</div>
+        </article>
+        <article class="metric-card">
+            <div class="metric-label">Orders</div>
+            <div class="metric-value">{{ total_orders }}</div>
+            <div class="metric-footnote">{{ pending_orders }} pending fulfillment</div>
+        </article>
+        <article class="metric-card">
+            <div class="metric-label">Customers</div>
+            <div class="metric-value">{{ total_users }}</div>
+            <div class="metric-footnote">{{ dashboard_meta.repeat_customer_rate }}% repeat buyers</div>
+        </article>
+        <article class="metric-card">
+            <div class="metric-label">Product Catalog</div>
+            <div class="metric-value">{{ total_products }}</div>
+            <div class="metric-footnote">₹{{ dashboard_meta.inventory_value }} inventory value</div>
+        </article>
+    </section>
+
+    <section class="analytics-grid">
+        <div class="card analytics-card" data-chart="revenue">
+            <div class="card-header">
+                <div>
+                    <h2>Revenue Momentum</h2>
+                    <p>Performance across the last six months</p>
+                </div>
+                <span class="badge-soft">Live</span>
+            </div>
+            <canvas id="revenueChart" height="220"></canvas>
+        </div>
+
+        <div class="card analytics-card" data-chart="status">
+            <div class="card-header">
+                <div>
+                    <h2>Order Health</h2>
+                    <p>Status distribution at a glance</p>
+                </div>
+            </div>
+            <div class="status-summary">
+                <canvas id="statusChart" height="220"></canvas>
+                <ul class="status-legend">
+                    {% for status, count in status_summary.items() %}
+                    <li>
+                        <span class="status-dot status-{{ status }}"></span>
+                        <span class="status-label">{{ status|capitalize }}</span>
+                        <span class="status-count">{{ count }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="insight-grid">
+        <div class="card insight-card">
+            <div class="card-header">
+                <h2>Top Performing Products</h2>
+                <p>By units sold & revenue</p>
+            </div>
+            <ul class="ranking-list">
+                {% if top_products %}
+                    {% for product in top_products %}
+                    <li>
+                        <div>
+                            <strong>{{ product.name }}</strong>
+                            <span>{{ product.units }} units • ₹{{ product.revenue }}</span>
+                        </div>
+                        <a href="{{ url_for('admin.products', q=product.name) }}" class="pill-link">View</a>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="empty-state">Sales data will appear once orders flow in.</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="card insight-card">
+            <div class="card-header">
+                <h2>Customer Champions</h2>
+                <p>Most engaged buyers</p>
+            </div>
+            <ul class="ranking-list">
+                {% if top_customers %}
+                    {% for customer in top_customers %}
+                    <li>
+                        <div>
+                            <strong>{{ customer.name }}</strong>
+                            <span>{{ customer.email }}</span>
+                        </div>
+                        <div class="pill-metric">₹{{ customer.revenue }} · {{ customer.orders }} orders</div>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="empty-state">Customer insights will populate automatically.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </section>
+
+    <section class="activity-grid">
+        <div class="card activity-card">
+            <div class="card-header">
+                <h2>Recent Orders</h2>
+                <a href="{{ url_for('admin.orders') }}" class="pill-link">View all</a>
+            </div>
+            <ul class="activity-list">
+                {% if recent_orders %}
+                    {% for order in recent_orders %}
+                    <li>
+                        <div class="activity-icon">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="activity-body">
+                            <div class="activity-row">
+                                <strong>#{{ order.order_number }}</strong>
+                                <span class="status-chip status-{{ order.status }}">{{ order.status|capitalize }}</span>
+                            </div>
+                            <p>{{ order.customer.full_name or order.customer.username }} · ₹{{ order.total_amount }} · {{ order.created_at.strftime('%b %d, %Y %I:%M %p') }}</p>
+                        </div>
+                        <a href="{{ url_for('admin.order_detail', order_id=order.id) }}" class="pill-link">Details</a>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="empty-state">No orders just yet. Launch a campaign to get things moving.</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="card activity-card">
+            <div class="card-header">
+                <h2>Inventory Spotlight</h2>
+            </div>
+            <ul class="activity-list">
+                {% if low_stock_products %}
+                    {% for product in low_stock_products %}
+                    <li>
+                        <div class="activity-icon low-stock">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="activity-body">
+                            <div class="activity-row">
+                                <strong>{{ product.name }}</strong>
+                                <span class="status-chip status-warning">{{ product.stock_quantity }} left</span>
+                            </div>
+                            <p>SKU {{ product.sku }} · Threshold {{ product.low_stock_threshold }}</p>
+                        </div>
+                        <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="pill-link">Restock</a>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="empty-state">All products are comfortably stocked.</li>
+                {% endif %}
+            </ul>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" integrity="sha384-4DNnhgypKekJy5o+1OtSWT8gJtIhXCTITVEWil/92pT9XyM54q9WlH0I1GtIsfRSA" crossorigin="anonymous"></script>
+<script>
+    const revenueCanvas = document.getElementById('revenueChart');
+    const revenueCard = document.querySelector('[data-chart="revenue"]');
+    const revenueLabels = {{ monthly_labels|tojson }};
+    const revenueData = {{ monthly_revenue|tojson }};
+    const ordersData = {{ monthly_orders|tojson }};
+
+    if (revenueCanvas && revenueCard) {
+        const hasRevenueData = revenueData.some(val => val > 0) || ordersData.some(val => val > 0);
+
+        if (hasRevenueData) {
+            const revenueCtx = revenueCanvas.getContext('2d');
+            const gradient = revenueCtx.createLinearGradient(0, 0, 0, 280);
+            gradient.addColorStop(0, 'rgba(0, 113, 227, 0.35)');
+            gradient.addColorStop(1, 'rgba(0, 113, 227, 0)');
+
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: revenueLabels,
+                    datasets: [
+                        {
+                            label: 'Revenue',
+                            data: revenueData,
+                            tension: 0.4,
+                            borderColor: '#0071e3',
+                            backgroundColor: gradient,
+                            fill: true,
+                            borderWidth: 2,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#0071e3',
+                            pointBorderWidth: 1.5,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Orders',
+                            data: ordersData,
+                            yAxisID: 'ordersAxis',
+                            borderDash: [6, 6],
+                            borderColor: '#34c759',
+                            pointBorderColor: '#34c759',
+                            pointBackgroundColor: '#fff',
+                            pointRadius: 3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#1d1d1f',
+                                usePointStyle: true
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#6e6e73' },
+                            grid: { color: 'rgba(0,0,0,0.06)' }
+                        },
+                        ordersAxis: {
+                            position: 'right',
+                            ticks: { color: '#6e6e73' },
+                            grid: { drawOnChartArea: false }
+                        },
+                        x: {
+                            ticks: { color: '#6e6e73' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        } else {
+            revenueCanvas.remove();
+            const placeholder = document.createElement('div');
+            placeholder.className = 'chart-empty';
+            placeholder.innerHTML = '<i class="fas fa-chart-line"></i><p>Sales insights will appear once orders start rolling in.</p>';
+            revenueCard.appendChild(placeholder);
+        }
+    }
+
+    const statusCanvas = document.getElementById('statusChart');
+    const statusCard = document.querySelector('[data-chart="status"]');
+    const statusSummary = {{ status_summary|tojson }};
+    const statusLabels = Object.keys(statusSummary || {});
+    const statusValues = Object.values(statusSummary || {});
+    const totalStatus = statusValues.reduce((sum, val) => sum + val, 0);
+    const palette = ['#0071e3', '#34c759', '#ff9500', '#ff3b30', '#5ac8fa', '#8e8e93'];
+
+    if (statusCanvas && statusCard) {
+        if (totalStatus > 0) {
+            const statusCtx = statusCanvas.getContext('2d');
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusValues,
+                        backgroundColor: palette.slice(0, statusValues.length),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        } else {
+            const statusSummaryContainer = statusCard.querySelector('.status-summary');
+            if (statusSummaryContainer) {
+                statusSummaryContainer.innerHTML = '';
+                const placeholder = document.createElement('div');
+                placeholder.className = 'chart-empty';
+                placeholder.innerHTML = '<i class="fas fa-clipboard-list"></i><p>Order health metrics will display after your first order update.</p>';
+                statusSummaryContainer.appendChild(placeholder);
+            }
+        }
+    }
+</script>
+{% endblock %}

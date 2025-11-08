@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Product - Admin{% endblock %}
+
+{% block content %}
+<div class="container admin-section">
+    <div class="section-heading">
+        <div>
+            <h1>{{ action }} Product</h1>
+            <p>Design a catalog experience that feels as considered as an Apple keynote.</p>
+        </div>
+        <a href="{{ url_for('admin.products') }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back to products</a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="product-form">
+        {{ form.hidden_tag() }}
+        <div class="product-form-grid">
+            <section class="card product-form-card">
+                <div class="card-header">
+                    <h2>Product Identity</h2>
+                    <p>Name, narrative, and classification.</p>
+                </div>
+                <div class="two-column">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.name.label }}</label>
+                        {{ form.name(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.sku.label }}</label>
+                        {{ form.sku(class="form-control") }}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ form.description.label }}</label>
+                    {{ form.description(class="form-control", rows="4") }}
+                </div>
+                <div class="two-column">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.category_id.label }}</label>
+                        {{ form.category_id(class="form-control") }}
+                    </div>
+                    <div class="two-column">
+                        <div class="form-group">
+                            <label class="form-label">{{ form.size.label }}</label>
+                            {{ form.size(class="form-control") }}
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">{{ form.unit.label }}</label>
+                            {{ form.unit(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ form.features.label }}</label>
+                    {{ form.features(class="form-control", rows="3", placeholder="Cold-pressed, Rich in Oryzanol, Heart healthy") }}
+                    <small class="form-hint">Use comma separated values—perfect for quick bullets on the storefront.</small>
+                </div>
+            </section>
+
+            <section class="card product-form-card">
+                <div class="card-header">
+                    <h2>Pricing & Packaging</h2>
+                    <p>Keep pricing transparent and compelling.</p>
+                </div>
+                <div class="three-column">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.price.label }}</label>
+                        {{ form.price(class="form-control", step="0.01") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.mrp.label }}</label>
+                        {{ form.mrp(class="form-control", step="0.01") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.discount_percentage.label }}</label>
+                        {{ form.discount_percentage(class="form-control", step="0.1") }}
+                    </div>
+                </div>
+                <div class="two-column">
+                    <div class="form-group">
+                        <label class="form-label">{{ form.stock_quantity.label }}</label>
+                        {{ form.stock_quantity(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">{{ form.low_stock_threshold.label }}</label>
+                        {{ form.low_stock_threshold(class="form-control") }}
+                        <small class="form-hint">Trigger proactive alerts before shelves run dry.</small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card product-form-card">
+                <div class="card-header">
+                    <h2>Imagery & Status</h2>
+                    <p>Upload visuals and set storefront visibility.</p>
+                </div>
+                <div class="media-upload">
+                    <label class="form-label">Product gallery</label>
+                    <input type="file" name="product_images" multiple accept="image/*" class="form-control" id="productImages" onchange="previewImages()">
+                    <small class="form-hint"><i class="fas fa-info-circle"></i> First image becomes the cover—drag files in an order that delights.</small>
+                    <div id="imagePreview" class="image-preview-grid"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ form.image_url.label }} (fallback)</label>
+                    {{ form.image_url(class="form-control") }}
+                </div>
+                <div class="toggle-grid">
+                    <label class="toggle-item">
+                        {{ form.is_active(class="form-check-input") }}
+                        <span>
+                            <strong>{{ form.is_active.label.text }}</strong>
+                            <small>Make the product discoverable to shoppers.</small>
+                        </span>
+                    </label>
+                    <label class="toggle-item">
+                        {{ form.is_featured(class="form-check-input") }}
+                        <span>
+                            <strong>{{ form.is_featured.label.text }}</strong>
+                            <small>Surface in hero placements and curated mixes.</small>
+                        </span>
+                    </label>
+                </div>
+            </section>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Product</button>
+            <a href="{{ url_for('admin.products') }}" class="btn btn-outline"><i class="fas fa-times"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function previewImages() {
+    const preview = document.getElementById('imagePreview');
+    const files = document.getElementById('productImages').files;
+    if (!preview || !files) return;
+
+    preview.innerHTML = '';
+
+    Array.from(files).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'preview-tile';
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = file.name;
+
+            const badge = document.createElement('span');
+            badge.className = 'preview-badge';
+            badge.textContent = index === 0 ? 'Cover' : `Image ${index + 1}`;
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(badge);
+            preview.appendChild(wrapper);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+</script>
+{% endblock %}

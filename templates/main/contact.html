@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - Shree Vinayaga{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="text-align: center; margin: 2rem 0;">Contact Us</h1>
+    
+    <div class="row" style="margin: 3rem 0; gap: 2rem;">
+        <div class="col-6">
+            <div class="card" style="padding: 2rem;">
+                <h2>Get in Touch</h2>
+                <p>We'd love to hear from you! Whether you're a retail customer, distributor, or institutional buyer, feel free to reach out.</p>
+                
+                <div style="margin-top: 2rem;">
+                    <h3><i class="fas fa-map-marker-alt" style="color: #007BFF;"></i> Address</h3>
+                    <p>Shree Vinayaga Agro Manufacturing & Processing Industry LLP<br>
+                    Dindigul District<br>
+                    Tamil Nadu, India</p>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <h3><i class="fas fa-phone" style="color: #28A745;"></i> Phone</h3>
+                    <p>+91 XXX XXX XXXX</p>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <h3><i class="fas fa-envelope" style="color: #DC3545;"></i> Email</h3>
+                    <p>info@shreevinayaga.com<br>
+                    sales@shreevinayaga.com</p>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <h3><i class="fas fa-clock" style="color: #FFC107;"></i> Business Hours</h3>
+                    <p>Monday - Saturday: 9:00 AM - 6:00 PM<br>
+                    Sunday: Closed</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-6">
+            <div class="card" style="padding: 2rem;">
+                <h2>Send Us a Message</h2>
+                <form>
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Subject</label>
+                        <select class="form-control">
+                            <option>General Inquiry</option>
+                            <option>Retail Purchase</option>
+                            <option>Bulk Order / B2B</option>
+                            <option>Distributor Partnership</option>
+                            <option>Product Information</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" rows="5" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <section style="margin: 3rem 0; text-align: center; background-color: #007BFF; color: white; padding: 3rem; border-radius: 1rem;">
+        <h2 style="color: white;">Interested in Becoming a Distributor?</h2>
+        <p style="color: rgba(255,255,255,0.9);">Join our network and bring pure rice bran oil to your region</p>
+        <a href="mailto:sales@shreevinayaga.com" class="btn btn-lg" style="background-color: white; color: #007BFF; margin-top: 1rem;">
+            <i class="fas fa-handshake"></i> Partner With Us
+        </a>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Shree Vinayaga Pure Rice Bran Oil{% endblock %}
+
+{% block content %}
+<div class="container home-page">
+    <!-- Hero Section -->
+    <section class="hero hero-home">
+        <div class="hero-content">
+            <span class="hero-eyebrow">Quality you can trust</span>
+            <h1 class="hero-title">Pure 100% Rice Bran Oil</h1>
+            <p class="hero-subtitle">Healthy 'N' Enhancing Taste for every kitchen</p>
+            <p class="hero-meta">FSSAI Certified • 100 TPD Capacity • Dindigul, Tamil Nadu</p>
+            <div class="hero-actions">
+                <a href="{{ url_for('products.list_products') }}" class="btn btn-lg btn-hero">Shop Now</a>
+            </div>
+        </div>
+        <div class="hero-decoration" aria-hidden="true"></div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section-block feature-section">
+        <div class="section-header">
+            <h2>Why Choose Our Rice Bran Oil?</h2>
+        </div>
+        <div class="feature-grid">
+            <article class="feature-card">
+                <span class="feature-icon">
+                    <i class="fas fa-heart"></i>
+                </span>
+                <h3 class="feature-title">Heart Healthy</h3>
+                <p>Rich in Oryzanol to support cardiovascular health and manage cholesterol levels.</p>
+            </article>
+            <article class="feature-card">
+                <span class="feature-icon feature-icon-success">
+                    <i class="fas fa-certificate"></i>
+                </span>
+                <h3 class="feature-title">FSSAI Certified</h3>
+                <p>Meets rigorous food safety standards to deliver consistent and reliable quality.</p>
+            </article>
+            <article class="feature-card">
+                <span class="feature-icon feature-icon-warm">
+                    <i class="fas fa-fire"></i>
+                </span>
+                <h3 class="feature-title">High Smoke Point</h3>
+                <p>Ideal for frying, sautéing and baking while retaining nutrients and flavour.</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    {% if featured_products %}
+    <section class="section-block">
+        <div class="section-header">
+            <h2>Featured Products</h2>
+        </div>
+        <div class="products-grid">
+            {% for product in featured_products %}
+            <div class="card">
+                {% if product.is_in_stock() %}
+                    <span class="stock-status stock-in">In Stock</span>
+                {% elif product.is_low_stock() %}
+                    <span class="stock-status stock-low">Low Stock</span>
+                {% else %}
+                    <span class="stock-status stock-out">Out of Stock</span>
+                {% endif %}
+
+                <img src="{% if product.image_url %}{% if product.image_url.startswith('/static/') %}{{ product.image_url }}{% else %}{{ url_for('static', filename=product.image_url) }}{% endif %}{% else %}{{ url_for('static', filename='images/product-placeholder.jpg') }}{% endif %}"
+                     alt="{{ product.name }}" class="card-img">
+                <div class="card-body">
+                    <h3 class="card-title">{{ product.name }}</h3>
+                    <p class="card-text">{{ product.size }} {{ product.unit }}</p>
+                    <div class="price-stack">
+                        <span class="price">₹{{ product.price }}</span>
+                        {% if product.mrp and product.mrp > product.price %}
+                            <span class="price-original">₹{{ product.mrp }}</span>
+                            <span class="discount-badge">{{ product.discount_percentage|int }}% OFF</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('products.product_detail', slug=product.slug) }}" class="btn btn-primary btn-block">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="section-actions">
+            <a href="{{ url_for('products.list_products') }}" class="btn btn-outline btn-lg">View All Products</a>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Categories Section -->
+    {% if categories %}
+    <section class="section-block category-section">
+        <div class="section-header">
+            <h2>Shop by Category</h2>
+        </div>
+        <div class="category-grid">
+            {% for category in categories %}
+            <a href="{{ url_for('products.list_products', category=category.slug) }}" class="category-card">
+                <span class="category-icon"><i class="fas fa-box"></i></span>
+                <h4>{{ category.name }}</h4>
+                <p>{{ category.description }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- About Section -->
+    <section class="section-block about-section">
+        <div class="about-content">
+            <h2>About Shree Vinayaga Agro</h2>
+            <p>Shree Vinayaga Agro Manufacturing &amp; Processing Industry LLP is a leading producer of refined edible rice bran oil with a capacity of 100 Tonnes Per Day (TPD) of rice bran input.</p>
+            <p>Located in Dindigul District, Tamil Nadu, we serve health-conscious consumers, food processors, restaurants, and institutional buyers across South India.</p>
+            <ul class="icon-list">
+                <li class="icon-list-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>FSSAI Certified Quality</span>
+                </li>
+                <li class="icon-list-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Physical Refining Process</span>
+                </li>
+                <li class="icon-list-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Low FFA, High Oil Content</span>
+                </li>
+                <li class="icon-list-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Fresh from Local Mills</span>
+                </li>
+            </ul>
+            <a href="{{ url_for('main.about') }}" class="btn btn-primary">Learn More</a>
+        </div>
+        <div class="about-visual" aria-hidden="true">
+            <i class="fas fa-industry"></i>
+        </div>
+    </section>
+</div>
+{% endblock %}

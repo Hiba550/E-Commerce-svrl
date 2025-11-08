@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.order_number }} - Shree Vinayaga{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 3rem auto;">
+    <h1>Order Details</h1>
+    
+    <div class="card" style="padding: 2rem; margin-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+            <div>
+                <h2>Order #{{ order.order_number }}</h2>
+                <p style="color: #6C757D;">Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+            </div>
+            <span style="padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600;
+                         background-color: {% if order.status == 'delivered' %}#d4edda{% elif order.status == 'cancelled' %}#f8d7da{% else %}#d1ecf1{% endif %}; 
+                         color: {% if order.status == 'delivered' %}#155724{% elif order.status == 'cancelled' %}#721c24{% else %}#0c5460{% endif %};">
+                {{ order.status|upper }}
+            </span>
+        </div>
+        
+        <div class="row">
+            <div class="col-6">
+                <h3>Shipping Address</h3>
+                <p>{{ order.shipping_full_name }}</p>
+                <p>{{ order.shipping_phone }}</p>
+                <p>{{ order.shipping_address_line1 }}</p>
+                {% if order.shipping_address_line2 %}
+                    <p>{{ order.shipping_address_line2 }}</p>
+                {% endif %}
+                <p>{{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_pincode }}</p>
+            </div>
+            
+            <div class="col-6">
+                <h3>Payment Information</h3>
+                <p><strong>Method:</strong> {{ order.payment_method }}</p>
+                <p><strong>Status:</strong> 
+                    <span style="color: {% if order.payment_status == 'paid' %}#28A745{% else %}#FFC107{% endif %}; font-weight: 600;">
+                        {{ order.payment_status|upper }}
+                    </span>
+                </p>
+                <p><strong>Transaction ID:</strong> {{ order.payment_id }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card" style="padding: 2rem; margin-top: 2rem;">
+        <h2>Order Items</h2>
+        
+        <table class="table" style="margin-top: 1.5rem;">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Size</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.order_items %}
+                <tr>
+                    <td>
+                        <strong>{{ item.product_name }}</strong><br>
+                        <small style="color: #6C757D;">SKU: {{ item.product_sku }}</small>
+                    </td>
+                    <td>{{ item.product_size }}</td>
+                    <td>₹{{ item.unit_price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div style="border-top: 2px solid #DEE2E6; margin-top: 1rem; padding-top: 1rem;">
+            <div style="display: flex; justify-content: flex-end; gap: 10rem; max-width: 400px; margin-left: auto;">
+                <div style="text-align: right;">
+                    <p>Subtotal:</p>
+                    <p>Tax:</p>
+                    <p>Shipping:</p>
+                    <p style="font-size: 1.25rem; font-weight: 700; margin-top: 0.5rem;">Total:</p>
+                </div>
+                <div style="text-align: right;">
+                    <p>₹{{ order.subtotal }}</p>
+                    <p>₹{{ order.tax_amount }}</p>
+                    <p>₹{{ order.shipping_cost }}</p>
+                    <p class="price" style="font-size: 1.25rem; margin-top: 0.5rem;">₹{{ order.total_amount }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if order.notes %}
+    <div class="card" style="padding: 2rem; margin-top: 2rem;">
+        <h3>Order Notes</h3>
+        <p>{{ order.notes }}</p>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <a href="{{ url_for('checkout.my_orders') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+        <a href="{{ url_for('products.list_products') }}" class="btn btn-primary">
+            <i class="fas fa-shopping-bag"></i> Continue Shopping
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+# Google Cloud Build configuration for Cloud Run deployment
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/shree-vinayaga-ecommerce:$SHORT_SHA', '.']
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/shree-vinayaga-ecommerce:$SHORT_SHA']
+  
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'shree-vinayaga-ecommerce'
+      - '--image=gcr.io/$PROJECT_ID/shree-vinayaga-ecommerce:$SHORT_SHA'
+      - '--region=asia-south1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--max-instances=10'
+      - '--min-instances=0'
+      - '--timeout=300'
+      - '--set-env-vars=FLASK_ENV=production,FLASK_APP=app:create_app'
+
+images:
+  - 'gcr.io/$PROJECT_ID/shree-vinayaga-ecommerce:$SHORT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Products - Admin{% endblock %}
+
+{% block content %}
+<div class="container admin-section">
+    <div class="section-heading">
+        <div>
+            <h1>Product Studio</h1>
+            <p>Curate an Apple-calibre catalogue—polished, precise, and always in stock.</p>
+        </div>
+        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Product
+        </a>
+    </div>
+
+    <div class="insight-strip">
+        <div class="strip-card">
+            <span class="strip-label">Active</span>
+            <span class="strip-value">{{ inventory_stats.active }}</span>
+        </div>
+        <div class="strip-card">
+            <span class="strip-label">Featured</span>
+            <span class="strip-value">{{ inventory_stats.featured }}</span>
+        </div>
+        <div class="strip-card">
+            <span class="strip-label">Low Stock</span>
+            <span class="strip-value">{{ inventory_stats.low_stock }}</span>
+        </div>
+        <div class="strip-card">
+            <span class="strip-label">Inventory Value</span>
+            <span class="strip-value">₹{{ inventory_stats.total_value }}</span>
+        </div>
+    </div>
+
+    <form method="GET" class="filter-bar">
+        <div class="filter-field">
+            <label>Search</label>
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Product name or SKU" class="form-control">
+        </div>
+        <div class="filter-field">
+            <label>Status</label>
+            <select name="status" class="form-control">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                <option value="featured" {% if status_filter == 'featured' %}selected{% endif %}>Featured</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <label>Stock</label>
+            <select name="stock" class="form-control">
+                <option value="all" {% if stock_filter == 'all' %}selected{% endif %}>All levels</option>
+                <option value="in" {% if stock_filter == 'in' %}selected{% endif %}>In stock</option>
+                <option value="low" {% if stock_filter == 'low' %}selected{% endif %}>Low stock</option>
+                <option value="out" {% if stock_filter == 'out' %}selected{% endif %}>Out of stock</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <label>Category</label>
+            <select name="category" class="form-control">
+                <option value="">All categories</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_filter == category.id %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-field">
+            <label>Sort by</label>
+            <select name="sort" class="form-control">
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest first</option>
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name A–Z</option>
+                <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                <option value="stock" {% if sort_by == 'stock' %}selected{% endif %}>Stock level</option>
+            </select>
+        </div>
+        <div class="filter-field">
+            <label>Per page</label>
+            <select name="per_page" class="form-control">
+                {% for option in [12, 20, 40] %}
+                    <option value="{{ option }}" {% if per_page == option %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Apply</button>
+            <a href="{{ url_for('admin.products') }}" class="btn btn-outline">Reset</a>
+        </div>
+    </form>
+
+    {% if products %}
+    <div class="admin-products-grid">
+        {% for product in products %}
+        {% if product.image_url %}
+            {% if product.image_url.startswith('/static/') %}
+                {% set product_image = product.image_url %}
+            {% else %}
+                {% set product_image = url_for('static', filename=product.image_url) %}
+            {% endif %}
+        {% else %}
+            {% set product_image = url_for('static', filename='images/product-placeholder.jpg') %}
+        {% endif %}
+        <article class="product-admin-card">
+            <div class="product-card-visual" style="background-image: url('{{ product_image }}');"></div>
+            <div class="product-card-body">
+                <div class="product-card-top">
+                    <div>
+                        <h2>{{ product.name }}</h2>
+                        <p>{{ product.size }} {{ product.unit }} · SKU {{ product.sku }}</p>
+                    </div>
+                    <div class="badge-collection">
+                        {% if product.is_featured %}<span class="pill-badge pill-featured">Featured</span>{% endif %}
+                        <span class="pill-badge pill-{{ 'active' if product.is_active else 'inactive' }}">{{ 'Active' if product.is_active else 'Inactive' }}</span>
+                    </div>
+                </div>
+                <div class="product-card-meta">
+                    <div>
+                        <span class="meta-label">Price</span>
+                        <span class="meta-value">₹{{ product.price }}</span>
+                        {% if product.discount_percentage %}
+                        <span class="meta-footnote">{{ product.discount_percentage|int }}% off</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <span class="meta-label">Inventory</span>
+                        <span class="meta-value {% if product.stock_quantity == 0 %}text-danger{% elif product.is_low_stock() %}text-warning{% endif %}">{{ product.stock_quantity }}</span>
+                        <span class="meta-footnote">Threshold {{ product.low_stock_threshold }}</span>
+                    </div>
+                    <div>
+                        <span class="meta-label">Updated</span>
+                        <span class="meta-value">{{ product.updated_at.strftime('%b %d, %Y') if product.updated_at else '—' }}</span>
+                        <span class="meta-footnote">Created {{ product.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                </div>
+                <div class="product-card-actions">
+                    <a href="{{ url_for('products.product_detail', slug=product.slug) }}" class="pill-link" target="_blank">Preview</a>
+                    <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-edit"></i> Edit</a>
+                    <form method="POST" action="{{ url_for('admin.delete_product', product_id=product.id) }}" onsubmit="return confirm('Delete {{ product.name }}?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination pagination-centered">
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.products', page=pagination.prev_num, q=search_query, status=status_filter, stock=stock_filter, category=category_filter, sort=sort_by, per_page=per_page) }}">&laquo; Prev</a>
+        {% endif %}
+
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == pagination.page %}
+                    <span class="active">{{ page_num }}</span>
+                {% else %}
+                    <a href="{{ url_for('admin.products', page=page_num, q=search_query, status=status_filter, stock=stock_filter, category=category_filter, sort=sort_by, per_page=per_page) }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span>…</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+            <a href="{{ url_for('admin.products', page=pagination.next_num, q=search_query, status=status_filter, stock=stock_filter, category=category_filter, sort=sort_by, per_page=per_page) }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-canvas">
+        <div class="empty-icon"><i class="fas fa-box-open"></i></div>
+        <h2>No products found</h2>
+        <p>Tweak your filters or start by creating a hero product.</p>
+        <a href="{{ url_for('admin.add_product') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add your first product</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

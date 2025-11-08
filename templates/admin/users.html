@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Admin{% endblock %}
+
+{% block content %}
+<div class="container admin-section">
+    <div class="section-heading">
+        <div>
+            <h1>People & Permissions</h1>
+            <p>Shape your customer and admin roster with effortless clarity.</p>
+        </div>
+    </div>
+
+    <div class="insight-strip">
+        <div class="strip-card">
+            <span class="strip-label">All users</span>
+            <span class="strip-value">{{ user_stats.total }}</span>
+        </div>
+        <div class="strip-card">
+            <span class="strip-label">Active</span>
+            <span class="strip-value">{{ user_stats.active }}</span>
+        </div>
+        <div class="strip-card">
+            <span class="strip-label">Customers</span>
+            <span class="strip-value">{{ user_stats.customers }}</span>
+        </div>
+        <div class="strip-card">
+            <span class="strip-label">Admins</span>
+            <span class="strip-value">{{ user_stats.admins }}</span>
+        </div>
+    </div>
+
+    <form method="GET" class="filter-bar">
+        <div class="filter-field">
+            <label>Search</label>
+            <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Name, username, or email">
+        </div>
+        <div class="filter-field">
+            <label>Role</label>
+            <select name="role" class="form-control">
+                <option value="all" {% if role_filter == 'all' %}selected{% endif %}>All roles</option>
+                <option value="customer" {% if role_filter == 'customer' %}selected{% endif %}>Customer</option>
+                <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-outline">Reset</a>
+        </div>
+    </form>
+
+    {% if users %}
+    <div class="user-admin-grid">
+        {% for user in users %}
+        <article class="user-admin-card">
+            <div class="user-card-header">
+                <div class="avatar-circle">{{ (user.full_name or user.username)[0:1] }}</div>
+                <div>
+                    <h2>{{ user.full_name or user.username }}</h2>
+                    <p>{{ user.email }}</p>
+                </div>
+                <span class="pill-badge pill-{{ 'active' if user.is_active else 'inactive' }}">{{ 'Active' if user.is_active else 'Inactive' }}</span>
+            </div>
+            <div class="user-card-body">
+                <div>
+                    <span class="meta-label">Username</span>
+                    <span class="meta-value">{{ user.username }}</span>
+                </div>
+                <div>
+                    <span class="meta-label">Role</span>
+                    <span class="meta-value text-cap">{{ user.user_type }}</span>
+                </div>
+                <div>
+                    <span class="meta-label">Joined</span>
+                    <span class="meta-value">{{ user.created_at.strftime('%b %d, %Y') }}</span>
+                </div>
+                <div>
+                    <span class="meta-label">Phone</span>
+                    <span class="meta-value">{{ user.phone or '—' }}</span>
+                </div>
+            </div>
+            <div class="user-card-actions">
+                {% if user.id != current_user.id %}
+                <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm {% if user.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                        {% if user.is_active %}
+                            <i class="fas fa-ban"></i> Deactivate
+                        {% else %}
+                            <i class="fas fa-check"></i> Activate
+                        {% endif %}
+                    </button>
+                </form>
+                {% else %}
+                <span class="pill-badge pill-neutral">You</span>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination pagination-centered">
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.users', page=pagination.prev_num, q=search_query, role=role_filter) }}">&laquo; Prev</a>
+        {% endif %}
+
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == pagination.page %}
+                    <span class="active">{{ page_num }}</span>
+                {% else %}
+                    <a href="{{ url_for('admin.users', page=page_num, q=search_query, role=role_filter) }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span>…</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+            <a href="{{ url_for('admin.users', page=pagination.next_num, q=search_query, role=role_filter) }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-canvas">
+        <div class="empty-icon"><i class="fas fa-user-slash"></i></div>
+        <h2>No users found</h2>
+        <p>Your filters returned zero results.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

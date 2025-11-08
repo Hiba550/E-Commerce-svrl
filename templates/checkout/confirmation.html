@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmation - Shree Vinayaga{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin: 3rem auto;">
+    <div style="text-align: center; padding: 2rem; background-color: white; border-radius: 1rem;">
+        <i class="fas fa-check-circle" style="font-size: 5rem; color: #28A745; margin-bottom: 1rem;"></i>
+        <h1 style="color: #28A745;">Order Placed Successfully!</h1>
+        <p style="font-size: 1.1rem; color: #6C757D; margin: 1rem 0;">Thank you for your order. We'll send you a confirmation email shortly.</p>
+        <p style="font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem;">Order Number: <span style="color: #007BFF;">{{ order.order_number }}</span></p>
+    </div>
+    
+    <div class="card" style="padding: 2rem; margin-top: 2rem;">
+        <h2>Order Details</h2>
+        
+        <div style="margin-top: 1.5rem;">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Shipping Address</h3>
+                    <p>{{ order.shipping_full_name }}</p>
+                    <p>{{ order.shipping_phone }}</p>
+                    <p>{{ order.shipping_address_line1 }}</p>
+                    {% if order.shipping_address_line2 %}
+                        <p>{{ order.shipping_address_line2 }}</p>
+                    {% endif %}
+                    <p>{{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_pincode }}</p>
+                </div>
+                
+                <div class="col-6">
+                    <h3>Payment Information</h3>
+                    <p><strong>Method:</strong> {{ order.payment_method }}</p>
+                    <p><strong>Status:</strong> <span style="color: #28A745; font-weight: 600;">{{ order.payment_status|upper }}</span></p>
+                    <p><strong>Transaction ID:</strong> {{ order.payment_id }}</p>
+                    <p><strong>Total Amount:</strong> <span class="price">₹{{ order.total_amount }}</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card" style="padding: 2rem; margin-top: 2rem;">
+        <h2>Order Items</h2>
+        
+        <table class="table" style="margin-top: 1.5rem;">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Size</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.order_items %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.product_size }}</td>
+                    <td>₹{{ item.unit_price }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="font-weight: 600;">
+                    <td colspan="4" style="text-align: right;">Total:</td>
+                    <td class="price">₹{{ order.total_amount }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    
+    <div style="text-align: center; margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+        <a href="{{ url_for('products.list_products') }}" class="btn btn-primary">
+            <i class="fas fa-shopping-bag"></i> Continue Shopping
+        </a>
+        <a href="{{ url_for('checkout.my_orders') }}" class="btn btn-outline">
+            <i class="fas fa-box"></i> View All Orders
+        </a>
+    </div>
+</div>
+{% endblock %}
