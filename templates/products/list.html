@@ -71,8 +71,14 @@
                 {% endif %}
 
                 <figure class="product-card-media">
-                    <img src="{% if product.image_url %}{% if product.image_url.startswith('/static/') %}{{ product.image_url }}{% else %}{{ url_for('static', filename=product.image_url) }}{% endif %}{% else %}{{ url_for('static', filename='images/product-placeholder.jpg') }}{% endif %}"
-                         alt="{{ product.name }}" class="product-card-image" loading="lazy">
+                {# Always show a 3D model viewer. Use product.model_url when available, otherwise fallback to a shared sample model #}
+                <model-viewer class="product-model" src="{% if product.model_url %}{% if product.model_url.startswith('/static/') %}{{ product.model_url }}{% else %}{{ url_for('static', filename=product.model_url) }}{% endif %}{% else %}{{ url_for('static', filename='models/sample.glb') }}{% endif %}"
+                            alt="{{ product.name }}"
+                            camera-controls
+                            touch-action="pan-y"
+                            style="width:100%; height:220px; background: #fafafa; border-radius: 0.5rem;"
+                            ar
+                            ><div class="sr-only">3D model of {{ product.name }}</div></model-viewer>
                 </figure>
 
                 <div class="product-card-body">

@@ -104,6 +104,8 @@ class Product(db.Model):
     image_url = db.Column(db.String(255))
     image_url_2 = db.Column(db.String(255))
     image_url_3 = db.Column(db.String(255))
+    # Optional 3D model file (relative path under static/, e.g. 'models/product123.glb')
+    model_url = db.Column(db.String(255))
     
     # SEO & Marketing
     meta_title = db.Column(db.String(200))
