@@ -87,6 +87,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Enable hover-to-rotate for <model-viewer> elements and thumbnail switching
+function setupModelViewers() {
+    // Toggle auto-rotate on hover so users can see rotation while hovering
+    const models = document.querySelectorAll('.product-model, model-viewer');
+    models.forEach(m => {
+        m.addEventListener('mouseenter', () => {
+            try { m.setAttribute('auto-rotate', ''); } catch (e) {}
+        });
+        m.addEventListener('mouseleave', () => {
+            try { m.removeAttribute('auto-rotate'); } catch (e) {}
+        });
+    });
+}
+
+// Change the main model viewer's src (used by thumbnails)
+function changeModel(src, thumbEl) {
+    const mainModel = document.getElementById('mainModel');
+    if (!mainModel) return;
+    // Update src
+    mainModel.src = src;
+
+    // update active thumbnail classes
+    document.querySelectorAll('.thumbnail, .model-thumb').forEach(t => t.classList.remove('active'));
+    if (thumbEl) thumbEl.classList.add('active');
+}
+
+// Initialize model viewers after DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+    setupModelViewers();
+});
+
 // Smooth scroll to top
 function scrollToTop() {
     window.scrollTo({
